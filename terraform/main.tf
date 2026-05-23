@@ -38,6 +38,11 @@ resource "aws_iam_role_policy_attachment" "ecs_task_execution_role_policy" {
 
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
+resource "aws_iam_role_policy_attachment" "codebuild_ecr_policy" {
+  role = "codebuild-tutus-pizza-build-service-role"
+
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryFullAccess"
+}
 resource "aws_vpc" "tutus_pizza_vpc" {
   cidr_block = "10.0.0.0/16"
 
