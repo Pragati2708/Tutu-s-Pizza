@@ -271,3 +271,31 @@ resource "aws_ecs_service" "tutus_pizza_service" {
     aws_lb_listener.http_listener
   ]
 }
+resource "aws_lb_target_group" "tutus_pizza_tg_green" {
+  name        = "tutus-pizza-tg-green"
+
+  port        = 80
+  protocol    = "HTTP"
+
+  target_type = "ip"
+
+  vpc_id = aws_vpc.tutus_pizza_vpc.id
+
+  health_check {
+    path                = "/"
+
+    protocol            = "HTTP"
+
+    healthy_threshold   = 2
+    unhealthy_threshold = 2
+
+    timeout             = 5
+    interval            = 30
+
+    matcher             = "200"
+  }
+
+  tags = {
+    Name = "Tutus Pizza Green Target Group"
+  }
+}
