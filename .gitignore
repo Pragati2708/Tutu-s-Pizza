@@ -2,3 +2,10 @@ node_modules
 dist
 .env
 .DS_Store
+# Terraform files
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+terraform.tfvars
+terraform.tfvars.json
