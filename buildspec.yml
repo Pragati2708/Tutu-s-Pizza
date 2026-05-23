@@ -1,0 +1,44 @@
+version: 0.2
+
+phases:
+
+  install:
+    runtime-versions:
+      nodejs: 18
+
+    commands:
+      - echo Installing dependencies...
+
+  pre_build:
+    commands:
+      - echo Logging into Amazon ECR...
+
+      - AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+
+      - REPOSITORY_URI=$AWS_ACCOUNT_ID.dkr.ecr.ap-south-1.amazonaws.com/tutus-pizza-repo
+
+      - aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin $REPOSITORY_URI
+
+      - IMAGE_TAG=latest
+
+  build:
+    commands:
+      - echo Build started on `date`
+
+      - npm install
+
+      - npm run build
+
+      - echo Building Docker image...
+
+      - docker build -t tutus-pizza .
+
+      - docker tag tutus-pizza:latest $REPOSITORY_URI:$IMAGE_TAG
+
+  post_build:
+    commands:
+      - echo Pushing Docker image...
+
+      - docker push $REPOSITORY_URI:$IMAGE_TAG
+
+      - echo Build completed successfully.

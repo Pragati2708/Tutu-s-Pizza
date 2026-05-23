@@ -148,3 +148,121 @@ resource "aws_security_group" "ecs_sg" {
     Name = "tutus-pizza-ecs-sg"
   }
 }
+resource "aws_lb" "tutus_pizza_alb" {
+  name               = "tutus-pizza-alb"
+  internal           = false
+  load_balancer_type = "application"
+
+  security_groups = [aws_security_group.alb_sg.id]
+
+  subnets = [
+    aws_subnet.public_subnet_1.id,
+    aws_subnet.public_subnet_2.id
+  ]
+
+  tags = {
+    Name = "Tutus Pizza ALB"
+  }
+}
+resource "aws_lb_target_group" "tutus_pizza_tg" {
+  name        = "tutus-pizza-tg"
+  port        = 80
+  protocol    = "HTTP"
+  target_type = "ip"
+
+  vpc_id = aws_vpc.tutus_pizza_vpc.id
+
+  health_check {
+    path                = "/"
+    protocol            = "HTTP"
+
+    healthy_threshold   = 2
+    unhealthy_threshold = 2
+
+    timeout             = 5
+    interval            = 30
+
+    matcher             = "200"
+  }
+
+  tags = {
+    Name = "Tutus Pizza Target Group"
+  }
+}
+resource "aws_lb_listener" "http_listener" {
+  load_balancer_arn = aws_lb.tutus_pizza_alb.arn
+
+  port     = 80
+  protocol = "HTTP"
+
+  default_action {
+    type             = "forward"
+
+    target_group_arn = aws_lb_target_group.tutus_pizza_tg.arn
+  }
+}
+resource "aws_ecs_task_definition" "tutus_pizza_task" {
+  family                   = "tutus-pizza-task"
+
+  network_mode             = "awsvpc"
+
+  requires_compatibilities = ["FARGATE"]
+
+  cpu                      = "256"
+  memory                   = "512"
+
+  execution_role_arn = aws_iam_role.ecs_task_execution_role.arn
+
+  container_definitions = jsonencode([
+    {
+      name  = "tutus-pizza-container"
+
+      image = "779846808506.dkr.ecr.ap-south-1.amazonaws.com/tutus-pizza-repo:latest"
+
+      essential = true
+
+      portMappings = [
+        {
+          containerPort = 80
+          hostPort      = 80
+        }
+      ]
+    }
+  ])
+}
+resource "aws_ecs_service" "tutus_pizza_service" {
+  name            = "tutus-pizza-service"
+
+  cluster         = aws_ecs_cluster.tutus_pizza_cluster.id
+
+  task_definition = aws_ecs_task_definition.tutus_pizza_task.arn
+
+  desired_count   = 1
+
+  launch_type     = "FARGATE"
+
+  network_configuration {
+    subnets = [
+      aws_subnet.public_subnet_1.id,
+      aws_subnet.public_subnet_2.id
+    ]
+
+    security_groups = [
+      aws_security_group.ecs_sg.id
+    ]
+
+    assign_public_ip = true
+  }
+
+  load_balancer {
+    target_group_arn = aws_lb_target_group.tutus_pizza_tg.arn
+
+    container_name   = "tutus-pizza-container"
+
+    container_port   = 80
+  }
+
+  depends_on = [
+    aws_lb_listener.http_listener
+  ]
+}
