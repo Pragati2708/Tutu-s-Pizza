@@ -389,3 +389,8 @@ resource "aws_codedeploy_deployment_group" "tutus_pizza_dg" {
     }
   }
 }
+resource "aws_iam_role_policy_attachment" "codebuild_s3_policy" {
+  role = "codebuild-tutus-pizza-build-service-role"
+
+  policy_arn = "arn:aws:iam::aws:policy/AmazonS3FullAccess"
+}
