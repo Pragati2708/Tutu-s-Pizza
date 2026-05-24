@@ -37,15 +37,19 @@ phases:
 
   post_build:
     commands:
+      - echo Build completed on `date`
+      
       - echo Pushing Docker image...
 
       - docker push $REPOSITORY_URI:$IMAGE_TAG
 
       - printf '[{"name":"tutus-pizza-container","imageUri":"%s"}]' $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
 
+      - ls -la
+
       - echo Build completed successfully.
 
 artifacts:
-  files: imagedefinitions.json
+  files:
     - appspec.yml
     - imagedefinitions.json
