@@ -270,7 +270,11 @@ resource "aws_ecs_service" "tutus_pizza_service" {
   depends_on = [
     aws_lb_listener.http_listener
   ]
+  deployment_controller {
+  type = "CODE_DEPLOY"
 }
+}
+
 resource "aws_lb_target_group" "tutus_pizza_tg_green" {
   name        = "tutus-pizza-tg-green"
 
@@ -329,6 +333,9 @@ resource "aws_iam_role_policy_attachment" "codedeploy_policy" {
   policy_arn = "arn:aws:iam::aws:policy/AWSCodeDeployRoleForECS"
 }
 resource "aws_codedeploy_deployment_group" "tutus_pizza_dg" {
+   depends_on = [
+       aws_ecs_service.tutus_pizza_service
+]
   app_name               = aws_codedeploy_app.tutus_pizza_app.name
 
   deployment_group_name  = "tutus-pizza-deployment-group"
