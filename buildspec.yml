@@ -1,59 +1,41 @@
 version: 0.2
 
 phases:
-
 install:
 runtime-versions:
-nodejs: 18
-
+nodejs: 16
 commands:
-  - echo Installing dependencies...
-
-  - npm install -g sonarqube-scanner
+- echo "Installing dependencies..."
+- npm install -g sonarqube-scanner
 
 pre_build:
 commands:
-- echo Logging into Amazon ECR...
-
-  - AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-
-  - REPOSITORY_URI=$AWS_ACCOUNT_ID.dkr.ecr.ap-south-1.amazonaws.com/tutus-pizza-repo
-
-  - aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin $REPOSITORY_URI
-
-  - IMAGE_TAG=latest
+- echo "Logging into Amazon ECR..."
+- AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+- REPOSITORY_URI=$AWS_ACCOUNT_ID.dkr.ecr.ap-south-1.amazonaws.com/tutus-pizza-repo
+- aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin $REPOSITORY_URI
+- IMAGE_TAG=latest
 
 build:
 commands:
-- echo Build started on `date`
-
-  - npm install
-
-  - npm run build
-
-  - sonar-scanner -Dsonar.projectKey=tutus-pizza -Dsonar.sources=. -Dsonar.host.url=http://13.206.221.116:9000 -Dsonar.login=$SONAR_TOKEN
-
-  - echo Building Docker image...
-
-  - docker build -t tutus-pizza .
-
-  - docker tag tutus-pizza:latest $REPOSITORY_URI:$IMAGE_TAG
+- echo "Build started on $(date)"
+- npm install
+- npm run build
+- sonar-scanner -Dsonar.projectKey=tutus-pizza -Dsonar.sources=. -Dsonar.host.url=http://13.206.221.116:9000 -Dsonar.login=$SONAR_TOKEN
+- echo "Building Docker image..."
+- docker build -t tutus-pizza .
+- docker tag tutus-pizza:latest $REPOSITORY_URI:$IMAGE_TAG
 
 post_build:
 commands:
-- echo Build completed on `date`
-
-  - echo Pushing Docker image...
-
-  - docker push $REPOSITORY_URI:$IMAGE_TAG
-
-  - printf '[{"name":"tutus-pizza-container","imageUri":"%s"}]' $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
-
-  - ls -la
-
-  - echo Build completed successfully.
+- echo "Build completed on $(date)"
+- echo "Pushing Docker image..."
+- docker push $REPOSITORY_URI:$IMAGE_TAG
+- printf '[{"name":"tutus-pizza-container","imageUri":"%s"}]' $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
+- ls -la
+- echo "Build completed successfully."
 
 artifacts:
-  files:
-  - appspec.yml
-  - imagedefinitions.json
+files:
+- appspec.yml
+- imagedefinitions.json
