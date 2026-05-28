@@ -7,6 +7,13 @@ phases:
     commands:
       - echo Installing dependencies...
       - npm install -g sonarqube-scanner
+      - wget https://github.com/aquasecurity/trivy/releases/download/v0.51.1/trivy_0.51.1_Linux-64bit.tar.gz
+
+      - tar zxvf trivy_0.51.1_Linux-64bit.tar.gz
+
+      - chmod +x trivy
+
+      - mv trivy /usr/local/bin/
 
   pre_build:
     commands:
@@ -24,6 +31,7 @@ phases:
       - sonar-scanner -Dsonar.projectKey=tutus-pizza -Dsonar.sources=. -Dsonar.host.url=http://13.206.221.116:9000 -Dsonar.login=$SONAR_TOKEN
       - echo Building Docker image...
       - docker build -t tutus-pizza .
+      - trivy image tutus-pizza
       - docker tag tutus-pizza:latest $REPOSITORY_URI:$IMAGE_TAG
 
   post_build:
