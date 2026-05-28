@@ -6,18 +6,15 @@ install:
 runtime-versions:
 nodejs: 18
 
-```
 commands:
   - echo Installing dependencies...
 
   - npm install -g sonarqube-scanner
-```
 
 pre_build:
 commands:
 - echo Logging into Amazon ECR...
 
-```
   - AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 
   - REPOSITORY_URI=$AWS_ACCOUNT_ID.dkr.ecr.ap-south-1.amazonaws.com/tutus-pizza-repo
@@ -25,13 +22,11 @@ commands:
   - aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin $REPOSITORY_URI
 
   - IMAGE_TAG=latest
-```
 
 build:
 commands:
 - echo Build started on `date`
 
-```
   - npm install
 
   - npm run build
@@ -43,13 +38,11 @@ commands:
   - docker build -t tutus-pizza .
 
   - docker tag tutus-pizza:latest $REPOSITORY_URI:$IMAGE_TAG
-```
 
 post_build:
 commands:
 - echo Build completed on `date`
 
-```
   - echo Pushing Docker image...
 
   - docker push $REPOSITORY_URI:$IMAGE_TAG
@@ -59,7 +52,6 @@ commands:
   - ls -la
 
   - echo Build completed successfully.
-```
 
 artifacts:
 files:
