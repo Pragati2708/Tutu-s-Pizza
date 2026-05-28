@@ -54,6 +54,6 @@ commands:
   - echo Build completed successfully.
 
 artifacts:
-files:
-- appspec.yml
-- imagedefinitions.json
+  files:
+  - appspec.yml
+  - imagedefinitions.json
