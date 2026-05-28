@@ -1,0 +1,39 @@
+---
+- name: Configure SonarQube Server
+  hosts: sonarqube
+  become: yes
+
+  tasks:
+
+    - name: Update apt packages
+      apt:
+        update_cache: yes
+
+    - name: Install Docker
+      apt:
+        name: docker.io
+        state: present
+
+    - name: Start Docker service
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Pull SonarQube Docker image
+      docker_image:
+        name: sonarqube
+        source: pull
+
+    - name: Run SonarQube container
+      docker_container:
+        name: sonarqube
+
+        image: sonarqube
+
+        state: started
+
+        restart_policy: always
+
+        published_ports:
+          - "9000:9000"
