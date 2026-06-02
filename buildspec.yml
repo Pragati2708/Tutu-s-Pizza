@@ -23,7 +23,7 @@ phases:
       - echo Build started on `date`
       - npm install
       - npm run build
-      - sonar-scanner -Dsonar.projectKey=tutus-pizza -Dsonar.sources=. -Dsonar.host.url=http://13.233.142.136/:9000 -Dsonar.login=$SONAR_TOKEN
+      - sonar-scanner -Dsonar.projectKey=tutus-pizza -Dsonar.sources=. -Dsonar.host.url=http://13.233.142.136:9000 -Dsonar.login=$SONAR_TOKEN
       - echo Running Trivy Dependency Scan...
 
       - ./bin/trivy fs .
