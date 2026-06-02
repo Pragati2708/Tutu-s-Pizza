@@ -46,6 +46,7 @@ phases:
       - echo Build completed on `date`
       - echo Pushing Docker image...
       - docker push $REPOSITORY_URI:$IMAGE_TAG
+      - printf '{"ImageURI":"%s"}' $REPOSITORY_URI:$IMAGE_TAG > imageDetail.json
       - ls -la
       - echo Build completed successfully.
 
@@ -53,3 +54,4 @@ artifacts:
   files:
     - appspec.yml
     - taskdef.json
+    - imageDetail.json
