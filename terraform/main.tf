@@ -34,7 +34,7 @@ resource "aws_iam_role" "ecs_task_execution_role" {
   })
 }
 resource "aws_iam_role_policy_attachment" "ecs_task_execution_role_policy" {
-  role       = aws_iam_role.ecs_task_execution_role.name
+  role = aws_iam_role.ecs_task_execution_role.name
 
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
@@ -73,6 +73,43 @@ resource "aws_subnet" "public_subnet_2" {
     Name = "tutus-pizza-public-subnet-2"
   }
 }
+# ==============================
+# SonarQube EC2 Server
+# ==============================
+
+resource "aws_instance" "sonarqube_server" {
+
+
+  ami = "ami-0f918f7e67a3323f0"
+
+
+  instance_type = "t3.medium"
+
+
+  subnet_id = aws_subnet.public_subnet_1.id
+
+
+  vpc_security_group_ids = [
+
+    aws_security_group.sonarqube_sg.id
+
+  ]
+
+
+  key_name = "2026_key"
+
+
+  associate_public_ip_address = true
+
+
+  tags = {
+
+    Name = "sonarqube-server"
+
+  }
+
+
+}
 resource "aws_internet_gateway" "tutus_pizza_igw" {
   vpc_id = aws_vpc.tutus_pizza_vpc.id
 
@@ -94,12 +131,12 @@ resource "aws_route_table" "public_route_table" {
   }
 }
 resource "aws_route_table_association" "public_subnet_1_assoc" {
-  subnet_id      = aws_subnet.public_subnet_1.id
+  subnet_id = aws_subnet.public_subnet_1.id
 
   route_table_id = aws_route_table.public_route_table.id
 }
 resource "aws_route_table_association" "public_subnet_2_assoc" {
-  subnet_id      = aws_subnet.public_subnet_2.id
+  subnet_id = aws_subnet.public_subnet_2.id
 
   route_table_id = aws_route_table.public_route_table.id
 }
@@ -109,17 +146,17 @@ resource "aws_security_group" "alb_sg" {
   vpc_id      = aws_vpc.tutus_pizza_vpc.id
 
   ingress {
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
+    from_port = 80
+    to_port   = 80
+    protocol  = "tcp"
 
     cidr_blocks = ["0.0.0.0/0"]
   }
 
   egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
+    from_port = 0
+    to_port   = 0
+    protocol  = "-1"
 
     cidr_blocks = ["0.0.0.0/0"]
   }
@@ -134,23 +171,58 @@ resource "aws_security_group" "ecs_sg" {
   vpc_id      = aws_vpc.tutus_pizza_vpc.id
 
   ingress {
-    from_port       = 80
-    to_port         = 80
-    protocol        = "tcp"
+    from_port = 80
+    to_port   = 80
+    protocol  = "tcp"
 
     security_groups = [aws_security_group.alb_sg.id]
   }
 
   egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
+    from_port = 0
+    to_port   = 0
+    protocol  = "-1"
 
     cidr_blocks = ["0.0.0.0/0"]
   }
 
   tags = {
     Name = "tutus-pizza-ecs-sg"
+  }
+}
+# SonarQube EC2 Security Group
+resource "aws_security_group" "sonarqube_sg" {
+  name        = "sonarqube-sg"
+  description = "Allow SonarQube access"
+  vpc_id      = aws_vpc.tutus_pizza_vpc.id
+
+  ingress {
+    description = "SSH Access"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    description = "SonarQube Port"
+    from_port   = 9000
+    to_port     = 9000
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+
+  tags = {
+    Name = "sonarqube-sg"
   }
 }
 resource "aws_lb" "tutus_pizza_alb" {
@@ -178,16 +250,16 @@ resource "aws_lb_target_group" "tutus_pizza_tg" {
   vpc_id = aws_vpc.tutus_pizza_vpc.id
 
   health_check {
-    path                = "/"
-    protocol            = "HTTP"
+    path     = "/"
+    protocol = "HTTP"
 
     healthy_threshold   = 2
     unhealthy_threshold = 2
 
-    timeout             = 5
-    interval            = 30
+    timeout  = 5
+    interval = 30
 
-    matcher             = "200"
+    matcher = "200"
   }
 
   tags = {
@@ -201,26 +273,26 @@ resource "aws_lb_listener" "http_listener" {
   protocol = "HTTP"
 
   default_action {
-    type             = "forward"
+    type = "forward"
 
     target_group_arn = aws_lb_target_group.tutus_pizza_tg.arn
   }
 }
 resource "aws_ecs_task_definition" "tutus_pizza_task" {
-  family                   = "tutus-pizza-task"
+  family = "tutus-pizza-task"
 
-  network_mode             = "awsvpc"
+  network_mode = "awsvpc"
 
   requires_compatibilities = ["FARGATE"]
 
-  cpu                      = "256"
-  memory                   = "512"
+  cpu    = "256"
+  memory = "512"
 
   execution_role_arn = aws_iam_role.ecs_task_execution_role.arn
 
   container_definitions = jsonencode([
     {
-      name  = "tutus-pizza-container"
+      name = "tutus-pizza-container"
 
       image = "779846808506.dkr.ecr.ap-south-1.amazonaws.com/tutus-pizza-repo:latest"
 
@@ -236,15 +308,15 @@ resource "aws_ecs_task_definition" "tutus_pizza_task" {
   ])
 }
 resource "aws_ecs_service" "tutus_pizza_service" {
-  name            = "tutus-pizza-service"
+  name = "tutus-pizza-service"
 
-  cluster         = aws_ecs_cluster.tutus_pizza_cluster.id
+  cluster = aws_ecs_cluster.tutus_pizza_cluster.id
 
   task_definition = aws_ecs_task_definition.tutus_pizza_task.arn
 
-  desired_count   = 1
+  desired_count = 1
 
-  launch_type     = "FARGATE"
+  launch_type = "FARGATE"
 
   network_configuration {
     subnets = [
@@ -262,41 +334,41 @@ resource "aws_ecs_service" "tutus_pizza_service" {
   load_balancer {
     target_group_arn = aws_lb_target_group.tutus_pizza_tg.arn
 
-    container_name   = "tutus-pizza-container"
+    container_name = "tutus-pizza-container"
 
-    container_port   = 80
+    container_port = 80
   }
 
   depends_on = [
     aws_lb_listener.http_listener
   ]
   deployment_controller {
-  type = "CODE_DEPLOY"
-}
+    type = "CODE_DEPLOY"
+  }
 }
 
 resource "aws_lb_target_group" "tutus_pizza_tg_green" {
-  name        = "tutus-pizza-tg-green"
+  name = "tutus-pizza-tg-green"
 
-  port        = 80
-  protocol    = "HTTP"
+  port     = 80
+  protocol = "HTTP"
 
   target_type = "ip"
 
   vpc_id = aws_vpc.tutus_pizza_vpc.id
 
   health_check {
-    path                = "/"
+    path = "/"
 
-    protocol            = "HTTP"
+    protocol = "HTTP"
 
     healthy_threshold   = 2
     unhealthy_threshold = 2
 
-    timeout             = 5
-    interval            = 30
+    timeout  = 5
+    interval = 30
 
-    matcher             = "200"
+    matcher = "200"
   }
 
   tags = {
@@ -333,19 +405,19 @@ resource "aws_iam_role_policy_attachment" "codedeploy_policy" {
   policy_arn = "arn:aws:iam::aws:policy/AWSCodeDeployRoleForECS"
 }
 resource "aws_codedeploy_deployment_group" "tutus_pizza_dg" {
-   depends_on = [
-       aws_ecs_service.tutus_pizza_service
-]
-  app_name               = aws_codedeploy_app.tutus_pizza_app.name
+  depends_on = [
+    aws_ecs_service.tutus_pizza_service
+  ]
+  app_name = aws_codedeploy_app.tutus_pizza_app.name
 
-  deployment_group_name  = "tutus-pizza-deployment-group"
+  deployment_group_name = "tutus-pizza-deployment-group"
 
-  service_role_arn       = aws_iam_role.codedeploy_role.arn
+  service_role_arn = aws_iam_role.codedeploy_role.arn
 
   deployment_config_name = "CodeDeployDefault.ECSAllAtOnce"
 
   deployment_style {
-    deployment_type   = "BLUE_GREEN"
+    deployment_type = "BLUE_GREEN"
 
     deployment_option = "WITH_TRAFFIC_CONTROL"
   }
@@ -357,7 +429,7 @@ resource "aws_codedeploy_deployment_group" "tutus_pizza_dg" {
     }
 
     terminate_blue_instances_on_deployment_success {
-      action                           = "TERMINATE"
+      action = "TERMINATE"
 
       termination_wait_time_in_minutes = 5
     }
@@ -393,4 +465,15 @@ resource "aws_iam_role_policy_attachment" "codebuild_s3_policy" {
   role = "codebuild-tutus-pizza-build-service-role"
 
   policy_arn = "arn:aws:iam::aws:policy/AmazonS3FullAccess"
+}
+# ==================================
+# CodeBuild SSM Parameter Store Access
+# ==================================
+
+resource "aws_iam_role_policy_attachment" "codebuild_ssm_policy" {
+
+  role = "codebuild-tutus-pizza-build-service-role"
+
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMReadOnlyAccess"
+
 }

@@ -9,3 +9,5 @@ dist
 crash.log
 terraform.tfvars
 terraform.tfvars.json
+inventory.ini
+*.pem

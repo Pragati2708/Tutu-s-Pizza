@@ -23,10 +23,21 @@ phases:
       - echo Build started on `date`
       - npm install
       - npm run build
-      - sonar-scanner -Dsonar.projectKey=tutus-pizza -Dsonar.sources=. -Dsonar.host.url=http://43.205.214.44:9000 -Dsonar.login=$SONAR_TOKEN
+      - sonar-scanner -Dsonar.projectKey=tutus-pizza -Dsonar.sources=. -Dsonar.host.url=http://http://13.233.142.136/:9000 -Dsonar.login=$SONAR_TOKEN
+      - echo Running Trivy Dependency Scan...
+
+      - ./bin/trivy fs .
+
+
       - echo Building Docker image...
+
       - docker build -t tutus-pizza .
+
+
+      - echo Running Trivy Image Scan...
+
       - ./bin/trivy image tutus-pizza
+
 
       - docker tag tutus-pizza:latest $REPOSITORY_URI:$IMAGE_TAG
 
