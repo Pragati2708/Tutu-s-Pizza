@@ -1,0 +1,18 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 18
+    commands:
+      - echo Installing test dependencies
+      - npm install
+
+  build:
+    commands:
+      - echo Running tests
+      - npm test
+
+  post_build:
+    commands:
+      - echo Tests completed successfully
