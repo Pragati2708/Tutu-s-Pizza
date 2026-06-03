@@ -225,6 +225,12 @@ resource "aws_security_group" "sonarqube_sg" {
     Name = "sonarqube-sg"
   }
 }
+resource "aws_ssm_parameter" "sonar_host_url" {
+  name      = "/tutus-pizza/SONAR_HOST_URL"
+  type      = "String"
+  value     = "http://${aws_instance.sonarqube_server.public_ip}:9000"
+  overwrite = true
+}
 resource "aws_lb" "tutus_pizza_alb" {
   name               = "tutus-pizza-alb"
   internal           = false
@@ -475,5 +481,15 @@ resource "aws_iam_role_policy_attachment" "codebuild_ssm_policy" {
   role = "codebuild-tutus-pizza-build-service-role"
 
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMReadOnlyAccess"
+
+}
+resource "local_file" "ansible_inventory" {
+
+  filename = "../ansible/inventory.ini"
+
+  content = <<EOF
+[sonarqube]
+${aws_instance.sonarqube_server.public_ip} ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/tutus-key.pem
+EOF
 
 }
