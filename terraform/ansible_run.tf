@@ -13,7 +13,7 @@ sleep 60
 
 ansible-playbook \
 -i ../ansible/inventory.ini \
-../ansible/sonarqube.yml
+../ansible/sonar-playbook.yml
 EOT
 
   }
