@@ -483,13 +483,3 @@ resource "aws_iam_role_policy_attachment" "codebuild_ssm_policy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMReadOnlyAccess"
 
 }
-resource "local_file" "ansible_inventory" {
-
-  filename = "../ansible/inventory.ini"
-
-  content = <<EOF
-[sonarqube]
-${aws_instance.sonarqube_server.public_ip} ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/tutus-key.pem
-EOF
-
-}
