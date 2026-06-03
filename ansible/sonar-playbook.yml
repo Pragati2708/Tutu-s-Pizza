@@ -9,10 +9,31 @@
       apt:
         update_cache: yes
 
-    - name: Install Docker
+    - name: Install required packages
       apt:
-        name: docker.io
+        name:
+          - docker.io
+          - unzip
+          - curl
         state: present
+
+    - name: Download AWS CLI installer
+      get_url:
+        url: "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip"
+        dest: "/tmp/awscliv2.zip"
+
+
+    - name: Unzip AWS CLI installer
+      unarchive:
+        src: "/tmp/awscliv2.zip"
+        dest: "/tmp"
+        remote_src: yes
+
+
+    - name: Install AWS CLI v2
+      command: /tmp/aws/install
+      args:
+        creates: /usr/local/bin/aws   
 
     - name: Start Docker service
       service:
@@ -37,3 +58,48 @@
 
         published_ports:
           - "9000:9000"
+
+    - name: Wait for SonarQube to become ready
+      uri:
+        url: "http://localhost:9000/api/system/status"
+        method: GET
+      register: sonar_status
+      until: sonar_status.json.status == "UP"
+      retries: 40
+      delay: 15
+
+    - name: Delete existing Sonar token if present
+      uri:
+        url: "http://localhost:9000/api/user_tokens/revoke"
+        method: POST
+        user: admin
+        password: admin
+        force_basic_auth: yes
+        body_format: form-urlencoded
+        body:
+          name: codebuild-token
+        status_code:
+          - 200
+          - 204
+          - 400
+
+    - name: Generate SonarQube Token
+      uri:
+        url: "http://localhost:9000/api/user_tokens/generate"
+        method: POST
+        user: admin
+        password: admin
+        force_basic_auth: yes
+        body_format: form-urlencoded
+        body:
+          name: codebuild-token
+      register: sonar_token
+
+    - name: Store Sonar Token in AWS Parameter Store
+      shell: |
+        aws ssm put-parameter \
+        --name "/tutus-pizza/SONAR_TOKEN" \
+        --value "{{ sonar_token.json.token }}" \
+        --type SecureString \
+        --overwrite \
+        --region ap-south-1      
