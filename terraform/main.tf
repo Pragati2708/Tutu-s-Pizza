@@ -84,6 +84,7 @@ resource "aws_instance" "sonarqube_server" {
 
 
   instance_type = "t3.medium"
+  iam_instance_profile = aws_iam_instance_profile.sonar_profile.name
 
 
   subnet_id = aws_subnet.public_subnet_1.id
