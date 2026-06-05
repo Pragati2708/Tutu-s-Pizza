@@ -34,7 +34,7 @@ resource "aws_codepipeline" "tutus_pipeline" {
 
         BranchName = "main"
 
-        DetectChanges = "false"
+        DetectChanges = "true"
       }
     }
   }
