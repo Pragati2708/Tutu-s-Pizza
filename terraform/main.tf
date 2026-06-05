@@ -12,6 +12,14 @@ resource "aws_ecr_repository" "tutus_pizza_repo" {
 resource "aws_ecs_cluster" "tutus_pizza_cluster" {
   name = "tutus-pizza-cluster"
 
+  setting {
+
+    name = "containerInsights"
+
+    value = "enabled"
+
+  }
+
   tags = {
     Name = "Tutus Pizza ECS Cluster"
   }
@@ -39,7 +47,7 @@ resource "aws_iam_role_policy_attachment" "ecs_task_execution_role_policy" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 resource "aws_iam_role_policy_attachment" "codebuild_ecr_policy" {
-  role = "codebuild-tutus-pizza-build-service-role"
+  role = aws_iam_role.codebuild_role.name
 
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryFullAccess"
 }
@@ -83,7 +91,7 @@ resource "aws_instance" "sonarqube_server" {
   ami = "ami-0f918f7e67a3323f0"
 
 
-  instance_type = "t3.medium"
+  instance_type        = "t3.medium"
   iam_instance_profile = aws_iam_instance_profile.sonar_profile.name
 
 
@@ -428,6 +436,17 @@ resource "aws_codedeploy_deployment_group" "tutus_pizza_dg" {
 
     deployment_option = "WITH_TRAFFIC_CONTROL"
   }
+  # Automatic rollback if deployment fails
+
+  auto_rollback_configuration {
+
+    enabled = true
+
+    events = [
+      "DEPLOYMENT_FAILURE"
+    ]
+
+  }
 
   blue_green_deployment_config {
 
@@ -469,7 +488,7 @@ resource "aws_codedeploy_deployment_group" "tutus_pizza_dg" {
   }
 }
 resource "aws_iam_role_policy_attachment" "codebuild_s3_policy" {
-  role = "codebuild-tutus-pizza-build-service-role"
+  role = aws_iam_role.codebuild_role.name
 
   policy_arn = "arn:aws:iam::aws:policy/AmazonS3FullAccess"
 }
@@ -479,7 +498,7 @@ resource "aws_iam_role_policy_attachment" "codebuild_s3_policy" {
 
 resource "aws_iam_role_policy_attachment" "codebuild_ssm_policy" {
 
-  role = "codebuild-tutus-pizza-build-service-role"
+  role = aws_iam_role.codebuild_role.name
 
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMReadOnlyAccess"
 

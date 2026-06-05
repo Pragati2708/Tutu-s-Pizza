@@ -1,5 +1,9 @@
 resource "null_resource" "run_ansible" {
 
+  triggers = {
+    instance_id = aws_instance.sonarqube_server.id
+  }
+
   depends_on = [
     aws_instance.sonarqube_server,
     local_file.ansible_inventory
