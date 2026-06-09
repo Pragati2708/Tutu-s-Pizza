@@ -3,7 +3,7 @@ Resources:
   - TargetService:
       Type: AWS::ECS::Service
       Properties:
-        TaskDefinition: <TASK_DEFINITION>
+        TaskDefinition: arn:aws:ecs:ap-south-1:779846808506:task-definition/tutus-pizza-task:14
         LoadBalancerInfo:
           ContainerName: tutus-pizza-container
           ContainerPort: 80

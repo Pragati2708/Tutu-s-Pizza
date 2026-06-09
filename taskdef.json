@@ -2,7 +2,7 @@
     "containerDefinitions": [
         {
             "name": "tutus-pizza-container",
-            "image": "<IMAGE1_NAME>",
+            "image": "779846808506.dkr.ecr.ap-south-1.amazonaws.com/tutus-pizza-repo:v2",
             "cpu": 0,
             "portMappings": [
                 {

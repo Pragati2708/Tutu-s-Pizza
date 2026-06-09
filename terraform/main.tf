@@ -503,3 +503,65 @@ resource "aws_iam_role_policy_attachment" "codebuild_ssm_policy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMReadOnlyAccess"
 
 }
+resource "aws_iam_role_policy" "codepipeline_policy" {
+
+  role = aws_iam_role.codepipeline_role.id
+
+  policy = jsonencode({
+
+    Version = "2012-10-17"
+
+    Statement = [
+
+      {
+        Effect = "Allow"
+
+        Action = [
+          "codeconnections:UseConnection"
+        ]
+
+        Resource = [
+          "arn:aws:codeconnections:ap-south-1:779846808506:connection/0275ee9f-b237-492f-b1aa-dfc89679813e"
+        ]
+      },
+
+      {
+        Effect = "Allow"
+
+        Action = [
+          "s3:GetObject",
+          "s3:GetObjectVersion",
+          "s3:PutObject",
+          "s3:GetBucketVersioning"
+        ]
+
+        Resource = [
+          "arn:aws:s3:::codepipeline-ap-south-1-8e5c35c45d60-4b23-93fe-413a2f7fd037",
+          "arn:aws:s3:::codepipeline-ap-south-1-8e5c35c45d60-4b23-93fe-413a2f7fd037/*"
+        ]
+      },
+
+      {
+        Effect = "Allow"
+
+        Action = [
+          "codebuild:BatchGetBuilds",
+          "codebuild:StartBuild"
+        ]
+
+        Resource = "*"
+      },
+
+      {
+        Effect = "Allow"
+
+        Action = [
+          "codedeploy:*"
+        ]
+
+        Resource = "*"
+      }
+
+    ]
+  })
+}
